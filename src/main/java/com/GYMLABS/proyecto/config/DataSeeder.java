@@ -48,16 +48,20 @@ public class DataSeeder implements CommandLineRunner {
         // 2. Asegurar Planes
         Plan planBasico = planRepository.findById(1).orElseGet(() -> {
             Plan p = new Plan();
-            p.setNombre("Básico");
+            p.setNombrePlan("Básico");
             p.setDescripcion("Acceso estándar");
-            p.setPrecioMensual(new BigDecimal("29.90"));
+            p.setPrecio(new BigDecimal("29.90"));
+            p.setDuracionMeses(1);
+            p.setEmpresa(empresa);
             return planRepository.save(p);
         });
         Plan planPro = planRepository.findById(2).orElseGet(() -> {
             Plan p = new Plan();
-            p.setNombre("Pro");
+            p.setNombrePlan("Pro");
             p.setDescripcion("Acceso total + Clases");
-            p.setPrecioMensual(new BigDecimal("59.90"));
+            p.setPrecio(new BigDecimal("59.90"));
+            p.setDuracionMeses(1);
+            p.setEmpresa(empresa);
             return planRepository.save(p);
         });
 
@@ -98,10 +102,10 @@ public class DataSeeder implements CommandLineRunner {
                 // Si el cliente sigue activo, le damos una membresia que vence en el futuro cercano o recién vencida
                 if (c.getActivo()) {
                     m.setFechaFin(LocalDate.now().plusDays(random.nextInt(40) - 10)); // Vence entre hace 10 días y 30 días futuro
-                    m.setEstadoMembresia(EstadoMembresia.ACTIVA);
+                    m.setEstado(EstadoMembresia.ACTIVA);
                 } else {
                     m.setFechaFin(fechaRegistro.toLocalDate().plusMonths(1));
-                    m.setEstadoMembresia(EstadoMembresia.VENCIDA);
+                    m.setEstado(EstadoMembresia.VENCIDA);
                 }
                 
                 m = membresiaRepository.save(m);
@@ -109,7 +113,7 @@ public class DataSeeder implements CommandLineRunner {
                 // 5. Crear Pago asociado al mes en que se registró
                 Pago p = new Pago();
                 p.setMembresia(m);
-                p.setMonto(planElegido.getPrecioMensual());
+                p.setMonto(planElegido.getPrecio());
                 p.setFechaPago(fechaRegistro.toLocalDate());
                 p.setEstadoPago(EstadoPago.COMPLETADO);
                 p.setMetodoPago(random.nextBoolean() ? MetodoPago.TARJETA : MetodoPago.EFECTIVO);
@@ -120,7 +124,7 @@ public class DataSeeder implements CommandLineRunner {
                 if (c.getActivo() && mes < 5) {
                     Pago p2 = new Pago();
                     p2.setMembresia(m);
-                    p2.setMonto(planElegido.getPrecioMensual());
+                    p2.setMonto(planElegido.getPrecio());
                     p2.setFechaPago(LocalDate.of(2026, mes + 1, random.nextInt(28) + 1));
                     p2.setEstadoPago(EstadoPago.COMPLETADO);
                     p2.setMetodoPago(MetodoPago.TRANSFERENCIA);
