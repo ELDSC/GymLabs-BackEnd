@@ -14,7 +14,9 @@ public class DashboardController {
     private DashboardService dashboardService;
 
     @GetMapping("/stats")
-    public DashboardDTO getStats() {
-        return dashboardService.getDashboardStats();
+    public DashboardDTO getStats(
+            @RequestParam(required = false) Integer mes,
+            @RequestParam(required = false) Integer anio) {
+        return dashboardService.getDashboardStats(mes, anio);
     }
 }

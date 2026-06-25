@@ -11,4 +11,5 @@ public interface ClienteRepository extends JpaRepository<Cliente, Integer> {
 
     long countByActivoTrue();
     java.util.List<Cliente> findByActivoTrueAndFechaRegistroAfter(java.time.LocalDateTime date);
+    java.util.List<Cliente> findByActivoTrueAndFechaRegistroBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
 }
