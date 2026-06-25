@@ -73,19 +73,22 @@ public class DataSeeder implements CommandLineRunner {
         String[] apellidos = {"Gomez", "Perez", "Rodriguez", "Sanchez", "Fernandez", "Torres", "Ramirez", "Flores", "Benitez", "Castro", "Ortiz", "Morales", "Herrera", "Rojas", "Vargas", "Silva", "Mendoza", "Rios"};
 
         // Generar 18 clientes, 3 para cada mes (Enero a Junio)
-        int dniCounter = 40000000;
+        int dniCounter = 74000000;
         int clienteContador = 0;
 
         for (int mes = 1; mes <= 6; mes++) {
             for (int i = 0; i < 3; i++) {
                 LocalDateTime fechaRegistro = LocalDateTime.of(2026, mes, random.nextInt(28) + 1, 10, 0);
+                
+                String nombreActual = nombres[clienteContador];
+                String apellidoActual = apellidos[clienteContador];
 
                 Cliente c = new Cliente();
-                c.setNombre(nombres[clienteContador]);
-                c.setApellido(apellidos[clienteContador]);
+                c.setNombre(nombreActual);
+                c.setApellido(apellidoActual);
                 c.setDni(String.valueOf(dniCounter++));
                 c.setTelefono("9" + (10000000 + random.nextInt(89999999)));
-                c.setCorreo("cliente" + clienteContador + "@gmail.com");
+                c.setCorreo(nombreActual.toLowerCase() + "." + apellidoActual.toLowerCase() + "@gmail.com");
                 c.setFechaRegistro(fechaRegistro);
                 c.setEmpresa(empresa);
                 c.setActivo(random.nextInt(10) > 1); // 80% activos
