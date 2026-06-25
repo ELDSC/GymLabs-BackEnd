@@ -33,4 +33,14 @@ public class ClienteService {
     public void eliminar(Integer id) {
         clienteRepository.deleteById(id);
     }
+
+    public Cliente toggleStatus(Integer id) {
+        Optional<Cliente> opt = clienteRepository.findById(id);
+        if (opt.isPresent()) {
+            Cliente c = opt.get();
+            c.setActivo(c.getActivo() == null ? false : !c.getActivo());
+            return clienteRepository.save(c);
+        }
+        return null;
+    }
 }

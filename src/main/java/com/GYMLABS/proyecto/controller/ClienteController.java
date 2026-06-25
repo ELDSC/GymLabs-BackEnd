@@ -50,4 +50,13 @@ public class ClienteController {
         clienteService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/{id}/toggle-estado")
+    public ResponseEntity<Cliente> toggleEstado(@PathVariable Integer id) {
+        Cliente actualizado = clienteService.toggleStatus(id);
+        if (actualizado == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(actualizado);
+    }
 }
