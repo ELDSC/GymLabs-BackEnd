@@ -3,12 +3,16 @@ package com.GYMLABS.proyecto.service;
 import com.GYMLABS.proyecto.model.Cliente;
 import com.GYMLABS.proyecto.repository.ClienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import com.GYMLABS.proyecto.repository.MembresiaRepository;
 import com.GYMLABS.proyecto.model.Membresia;
 import com.GYMLABS.proyecto.model.EstadoMembresia;
@@ -22,15 +26,26 @@ public class ClienteService {
     @Autowired
     private MembresiaRepository membresiaRepository;
 
-    public List<Cliente> listarTodos() {
-        List<Cliente> clientes = clienteRepository.findAll();
-        for (Cliente c : clientes) {
-            List<Membresia> membresias = membresiaRepository.findByCliente_IdClienteOrderByFechaFinDesc(c.getIdCliente());
-            if (!membresias.isEmpty()) {
-                c.setFechaVencimiento(membresias.get(0).getFechaFin());
+    public Page<Cliente> listarTodos(Pageable pageable) {
+        Page<Cliente> page = clienteRepository.findAll(pageable);
+        
+        List<Integer> clienteIds = page.getContent().stream()
+                .map(Cliente::getIdCliente)
+                .collect(Collectors.toList());
+
+        if (!clienteIds.isEmpty()) {
+            List<Membresia> latestMembresias = membresiaRepository.findLatestMembresiasByClienteIds(clienteIds);
+            Map<Integer, Membresia> membresiaMap = latestMembresias.stream()
+                    .collect(Collectors.toMap(m -> m.getCliente().getIdCliente(), m -> m));
+
+            for (Cliente c : page.getContent()) {
+                Membresia m = membresiaMap.get(c.getIdCliente());
+                if (m != null) {
+                    c.setFechaVencimiento(m.getFechaFin());
+                }
             }
         }
-        return clientes;
+        return page;
     }
 
     public Optional<Cliente> buscarPorId(Integer id) {
