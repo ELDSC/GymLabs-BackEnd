@@ -23,11 +23,25 @@ public class ClienteService {
     private MembresiaRepository membresiaRepository;
 
     public List<Cliente> listarTodos() {
-        return clienteRepository.findAll();
+        List<Cliente> clientes = clienteRepository.findAll();
+        for (Cliente c : clientes) {
+            List<Membresia> membresias = membresiaRepository.findByCliente_IdClienteOrderByFechaFinDesc(c.getIdCliente());
+            if (!membresias.isEmpty()) {
+                c.setFechaVencimiento(membresias.get(0).getFechaFin());
+            }
+        }
+        return clientes;
     }
 
     public Optional<Cliente> buscarPorId(Integer id) {
-        return clienteRepository.findById(id);
+        Optional<Cliente> opt = clienteRepository.findById(id);
+        opt.ifPresent(c -> {
+            List<Membresia> membresias = membresiaRepository.findByCliente_IdClienteOrderByFechaFinDesc(c.getIdCliente());
+            if (!membresias.isEmpty()) {
+                c.setFechaVencimiento(membresias.get(0).getFechaFin());
+            }
+        });
+        return opt;
     }
 
     public Cliente guardar(Cliente cliente) {
@@ -65,6 +79,11 @@ public class ClienteService {
                 membresiaRepository.save(ultimaMembresia);
             }
             
+            
+            List<Membresia> updatedMembresias = membresiaRepository.findByCliente_IdClienteOrderByFechaFinDesc(id);
+            if (!updatedMembresias.isEmpty()) {
+                clienteGuardado.setFechaVencimiento(updatedMembresias.get(0).getFechaFin());
+            }
             return clienteGuardado;
         }
         return null;

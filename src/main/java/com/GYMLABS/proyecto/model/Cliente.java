@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "Cliente")
@@ -46,6 +47,9 @@ public class Cliente {
 
     @Column(nullable = false)
     private Boolean activo = true;
+
+    @Transient
+    private LocalDate fechaVencimiento;
 
     @PrePersist
     protected void onCreate() {
