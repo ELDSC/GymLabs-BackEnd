@@ -7,4 +7,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MembresiaRepository extends JpaRepository<Membresia, Integer> {
     long countByEstado(com.GYMLABS.proyecto.model.EstadoMembresia estado);
+    
+    java.util.List<Membresia> findByCliente_IdClienteOrderByFechaFinDesc(Integer idCliente);
 }
