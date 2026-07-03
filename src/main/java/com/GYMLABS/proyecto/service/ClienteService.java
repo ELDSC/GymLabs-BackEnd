@@ -70,11 +70,31 @@ public class ClienteService {
         return opt;
     }
 
-    public Cliente guardar(Cliente cliente) {
+    public Cliente guardar(Cliente cliente, Integer planId) {
         if (cliente.getFechaRegistro() == null) {
             cliente.setFechaRegistro(LocalDateTime.now());
         }
-        return clienteRepository.save(cliente);
+        
+        Cliente saved = clienteRepository.save(cliente);
+        
+        if (planId != null) {
+            Membresia nuevaMembresia = new Membresia();
+            nuevaMembresia.setCliente(saved);
+            nuevaMembresia.setEstado(EstadoMembresia.ACTIVA);
+            nuevaMembresia.setFechaInicio(LocalDate.now());
+            planRepository.findById(planId).ifPresent(p -> {
+                nuevaMembresia.setPlan(p);
+                nuevaMembresia.setFechaFin(LocalDate.now().plusMonths(p.getDuracionMeses()));
+            });
+            if (nuevaMembresia.getPlan() != null) {
+                membresiaRepository.save(nuevaMembresia);
+                saved.setActivo(true);
+                saved.setFechaVencimiento(nuevaMembresia.getFechaFin());
+                clienteRepository.save(saved);
+            }
+        }
+        
+        return saved;
     }
 
     public void eliminar(Integer id) {

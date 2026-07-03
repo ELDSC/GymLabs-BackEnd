@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,7 @@ public class ClienteController {
     public ResponseEntity<Page<Cliente>> listarClientes(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "idCliente"));
         return ResponseEntity.ok(clienteService.listarTodos(pageable));
     }
 
@@ -33,8 +34,8 @@ public class ClienteController {
     }
 
     @PostMapping
-    public ResponseEntity<Cliente> guardar(@RequestBody Cliente cliente) {
-        return new ResponseEntity<>(clienteService.guardar(cliente), HttpStatus.CREATED);
+    public ResponseEntity<Cliente> guardar(@RequestBody Cliente cliente, @RequestParam(required = false) Integer planId) {
+        return new ResponseEntity<>(clienteService.guardar(cliente, planId), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -43,7 +44,7 @@ public class ClienteController {
             return ResponseEntity.notFound().build();
         }
         cliente.setIdCliente(id);
-        return ResponseEntity.ok(clienteService.guardar(cliente));
+        return ResponseEntity.ok(clienteService.guardar(cliente, null));
     }
 
     @DeleteMapping("/{id}")
