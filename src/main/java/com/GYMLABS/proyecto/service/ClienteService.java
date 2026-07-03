@@ -46,6 +46,13 @@ public class ClienteService {
                 Membresia m = membresiaMap.get(c.getIdCliente());
                 if (m != null) {
                     c.setFechaVencimiento(m.getFechaFin());
+                    // Lazy-evaluation: if membership is expired but client is active, deactivate them
+                    if (Boolean.TRUE.equals(c.getActivo()) && m.getFechaFin().isBefore(LocalDate.now())) {
+                        c.setActivo(false);
+                        clienteRepository.save(c);
+                        m.setEstado(EstadoMembresia.VENCIDA);
+                        membresiaRepository.save(m);
+                    }
                 }
             }
         }
@@ -83,25 +90,8 @@ public class ClienteService {
             
             Cliente clienteGuardado = clienteRepository.save(c);
             
-            // Sincronizar Membresía
-            List<Membresia> membresias = membresiaRepository.findByCliente_IdClienteOrderByFechaFinDesc(id);
-            if (!membresias.isEmpty()) {
-                Membresia ultimaMembresia = membresias.get(0);
-                if (nuevoEstado) {
-                    // Activar cliente: renovar usando la duración del plan y poner ACTIVA
-                    ultimaMembresia.setEstado(EstadoMembresia.ACTIVA);
-                    if (ultimaMembresia.getPlan() != null) {
-                        ultimaMembresia.setFechaFin(LocalDate.now().plusMonths(ultimaMembresia.getPlan().getDuracionMeses()));
-                    } else {
-                        ultimaMembresia.setFechaFin(LocalDate.now().plusMonths(1));
-                    }
-                } else {
-                    // Desactivar cliente: poner membresia en VENCIDA
-                    ultimaMembresia.setEstado(EstadoMembresia.VENCIDA);
-                }
-                membresiaRepository.save(ultimaMembresia);
-            } else if (nuevoEstado) {
-                // Crear membresia por defecto si no tiene y se está activando
+            if (nuevoEstado) {
+                // Siempre crear una nueva membresía al activar para conservar el historial
                 Membresia nuevaMembresia = new Membresia();
                 nuevaMembresia.setCliente(clienteGuardado);
                 nuevaMembresia.setEstado(EstadoMembresia.ACTIVA);
@@ -115,6 +105,14 @@ public class ClienteService {
                 
                 if (nuevaMembresia.getPlan() != null) {
                     membresiaRepository.save(nuevaMembresia);
+                }
+            } else {
+                // Al desactivar, marcar la membresía actual (si existe) como VENCIDA
+                List<Membresia> membresias = membresiaRepository.findByCliente_IdClienteOrderByFechaFinDesc(id);
+                if (!membresias.isEmpty()) {
+                    Membresia ultimaMembresia = membresias.get(0);
+                    ultimaMembresia.setEstado(EstadoMembresia.VENCIDA);
+                    membresiaRepository.save(ultimaMembresia);
                 }
             }
             
