@@ -84,9 +84,9 @@ public class ClienteService {
             if (!membresias.isEmpty()) {
                 Membresia ultimaMembresia = membresias.get(0);
                 if (nuevoEstado) {
-                    // Activar cliente: renovar 30 días desde hoy y poner ACTIVA
+                    // Activar cliente: renovar 1 mes desde hoy y poner ACTIVA
                     ultimaMembresia.setEstado(EstadoMembresia.ACTIVA);
-                    ultimaMembresia.setFechaFin(LocalDate.now().plusDays(30));
+                    ultimaMembresia.setFechaFin(LocalDate.now().plusMonths(1));
                 } else {
                     // Desactivar cliente: poner membresia en VENCIDA
                     ultimaMembresia.setEstado(EstadoMembresia.VENCIDA);
