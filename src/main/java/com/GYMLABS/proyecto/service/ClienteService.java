@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import com.GYMLABS.proyecto.repository.MembresiaRepository;
+import com.GYMLABS.proyecto.repository.PlanRepository;
 import com.GYMLABS.proyecto.model.Membresia;
 import com.GYMLABS.proyecto.model.EstadoMembresia;
 
@@ -25,6 +26,9 @@ public class ClienteService {
 
     @Autowired
     private MembresiaRepository membresiaRepository;
+
+    @Autowired
+    private PlanRepository planRepository;
 
     public Page<Cliente> listarTodos(Pageable pageable) {
         Page<Cliente> page = clienteRepository.findAll(pageable);
@@ -92,6 +96,17 @@ public class ClienteService {
                     ultimaMembresia.setEstado(EstadoMembresia.VENCIDA);
                 }
                 membresiaRepository.save(ultimaMembresia);
+            } else if (nuevoEstado) {
+                // Crear membresia por defecto si no tiene y se está activando
+                Membresia nuevaMembresia = new Membresia();
+                nuevaMembresia.setCliente(clienteGuardado);
+                nuevaMembresia.setEstado(EstadoMembresia.ACTIVA);
+                nuevaMembresia.setFechaInicio(LocalDate.now());
+                nuevaMembresia.setFechaFin(LocalDate.now().plusMonths(1));
+                planRepository.findById(1).ifPresent(nuevaMembresia::setPlan);
+                if (nuevaMembresia.getPlan() != null) {
+                    membresiaRepository.save(nuevaMembresia);
+                }
             }
             
             
