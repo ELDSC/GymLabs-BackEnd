@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,6 +43,9 @@ public class ClienteService {
             Map<Integer, Membresia> membresiaMap = latestMembresias.stream()
                     .collect(Collectors.toMap(m -> m.getCliente().getIdCliente(), m -> m));
 
+            List<Cliente> clientesAModificar = new ArrayList<>();
+            List<Membresia> membresiasAModificar = new ArrayList<>();
+
             for (Cliente c : page.getContent()) {
                 Membresia m = membresiaMap.get(c.getIdCliente());
                 if (m != null) {
@@ -49,11 +53,16 @@ public class ClienteService {
                     // Lazy-evaluation: if membership is expired but client is active, deactivate them
                     if (Boolean.TRUE.equals(c.getActivo()) && m.getFechaFin().isBefore(LocalDate.now())) {
                         c.setActivo(false);
-                        clienteRepository.save(c);
                         m.setEstado(EstadoMembresia.VENCIDA);
-                        membresiaRepository.save(m);
+                        clientesAModificar.add(c);
+                        membresiasAModificar.add(m);
                     }
                 }
+            }
+            
+            if (!clientesAModificar.isEmpty()) {
+                clienteRepository.saveAll(clientesAModificar);
+                membresiaRepository.saveAll(membresiasAModificar);
             }
         }
         return page;
@@ -78,23 +87,27 @@ public class ClienteService {
         Cliente saved = clienteRepository.save(cliente);
         
         if (planId != null) {
-            Membresia nuevaMembresia = new Membresia();
-            nuevaMembresia.setCliente(saved);
-            nuevaMembresia.setEstado(EstadoMembresia.ACTIVA);
-            nuevaMembresia.setFechaInicio(LocalDate.now());
-            planRepository.findById(planId).ifPresent(p -> {
-                nuevaMembresia.setPlan(p);
-                nuevaMembresia.setFechaFin(LocalDate.now().plusMonths(p.getDuracionMeses()));
-            });
-            if (nuevaMembresia.getPlan() != null) {
-                membresiaRepository.save(nuevaMembresia);
-                saved.setActivo(true);
-                saved.setFechaVencimiento(nuevaMembresia.getFechaFin());
-                clienteRepository.save(saved);
-            }
+            asignarNuevoPlan(saved, planId);
+            saved = clienteRepository.save(saved);
         }
         
         return saved;
+    }
+
+    private void asignarNuevoPlan(Cliente cliente, Integer planId) {
+        Integer idPlanAUsar = planId != null ? planId : 1;
+        planRepository.findById(idPlanAUsar).ifPresent(p -> {
+            Membresia nueva = new Membresia();
+            nueva.setCliente(cliente);
+            nueva.setEstado(EstadoMembresia.ACTIVA);
+            nueva.setFechaInicio(LocalDate.now());
+            nueva.setPlan(p);
+            nueva.setFechaFin(LocalDate.now().plusMonths(p.getDuracionMeses()));
+            membresiaRepository.save(nueva);
+            
+            cliente.setActivo(true);
+            cliente.setFechaVencimiento(nueva.getFechaFin());
+        });
     }
 
     public void eliminar(Integer id) {
@@ -111,21 +124,8 @@ public class ClienteService {
             Cliente clienteGuardado = clienteRepository.save(c);
             
             if (nuevoEstado) {
-                // Siempre crear una nueva membresía al activar para conservar el historial
-                Membresia nuevaMembresia = new Membresia();
-                nuevaMembresia.setCliente(clienteGuardado);
-                nuevaMembresia.setEstado(EstadoMembresia.ACTIVA);
-                nuevaMembresia.setFechaInicio(LocalDate.now());
-                
-                Integer idPlanAUsar = planId != null ? planId : 1;
-                planRepository.findById(idPlanAUsar).ifPresent(p -> {
-                    nuevaMembresia.setPlan(p);
-                    nuevaMembresia.setFechaFin(LocalDate.now().plusMonths(p.getDuracionMeses()));
-                });
-                
-                if (nuevaMembresia.getPlan() != null) {
-                    membresiaRepository.save(nuevaMembresia);
-                }
+                asignarNuevoPlan(clienteGuardado, planId);
+                clienteGuardado = clienteRepository.save(clienteGuardado);
             } else {
                 // Al desactivar, marcar la membresía actual (si existe) como VENCIDA
                 List<Membresia> membresias = membresiaRepository.findByCliente_IdClienteOrderByFechaFinDesc(id);
@@ -133,14 +133,10 @@ public class ClienteService {
                     Membresia ultimaMembresia = membresias.get(0);
                     ultimaMembresia.setEstado(EstadoMembresia.VENCIDA);
                     membresiaRepository.save(ultimaMembresia);
+                    clienteGuardado.setFechaVencimiento(ultimaMembresia.getFechaFin());
                 }
             }
             
-            
-            List<Membresia> updatedMembresias = membresiaRepository.findByCliente_IdClienteOrderByFechaFinDesc(id);
-            if (!updatedMembresias.isEmpty()) {
-                clienteGuardado.setFechaVencimiento(updatedMembresias.get(0).getFechaFin());
-            }
             return clienteGuardado;
         }
         return null;
