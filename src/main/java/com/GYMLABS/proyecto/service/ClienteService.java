@@ -74,7 +74,7 @@ public class ClienteService {
         clienteRepository.deleteById(id);
     }
 
-    public Cliente toggleStatus(Integer id) {
+    public Cliente toggleStatus(Integer id, Integer planId) {
         Optional<Cliente> opt = clienteRepository.findById(id);
         if (opt.isPresent()) {
             Cliente c = opt.get();
@@ -88,9 +88,13 @@ public class ClienteService {
             if (!membresias.isEmpty()) {
                 Membresia ultimaMembresia = membresias.get(0);
                 if (nuevoEstado) {
-                    // Activar cliente: renovar 1 mes desde hoy y poner ACTIVA
+                    // Activar cliente: renovar usando la duración del plan y poner ACTIVA
                     ultimaMembresia.setEstado(EstadoMembresia.ACTIVA);
-                    ultimaMembresia.setFechaFin(LocalDate.now().plusMonths(1));
+                    if (ultimaMembresia.getPlan() != null) {
+                        ultimaMembresia.setFechaFin(LocalDate.now().plusMonths(ultimaMembresia.getPlan().getDuracionMeses()));
+                    } else {
+                        ultimaMembresia.setFechaFin(LocalDate.now().plusMonths(1));
+                    }
                 } else {
                     // Desactivar cliente: poner membresia en VENCIDA
                     ultimaMembresia.setEstado(EstadoMembresia.VENCIDA);
@@ -102,8 +106,13 @@ public class ClienteService {
                 nuevaMembresia.setCliente(clienteGuardado);
                 nuevaMembresia.setEstado(EstadoMembresia.ACTIVA);
                 nuevaMembresia.setFechaInicio(LocalDate.now());
-                nuevaMembresia.setFechaFin(LocalDate.now().plusMonths(1));
-                planRepository.findById(1).ifPresent(nuevaMembresia::setPlan);
+                
+                Integer idPlanAUsar = planId != null ? planId : 1;
+                planRepository.findById(idPlanAUsar).ifPresent(p -> {
+                    nuevaMembresia.setPlan(p);
+                    nuevaMembresia.setFechaFin(LocalDate.now().plusMonths(p.getDuracionMeses()));
+                });
+                
                 if (nuevaMembresia.getPlan() != null) {
                     membresiaRepository.save(nuevaMembresia);
                 }

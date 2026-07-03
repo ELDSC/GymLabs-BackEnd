@@ -56,8 +56,8 @@ public class ClienteController {
     }
 
     @PatchMapping("/{id}/toggle-estado")
-    public ResponseEntity<Cliente> toggleEstado(@PathVariable Integer id) {
-        Cliente actualizado = clienteService.toggleStatus(id);
+    public ResponseEntity<Cliente> toggleEstado(@PathVariable Integer id, @RequestParam(required = false) Integer planId) {
+        Cliente actualizado = clienteService.toggleStatus(id, planId);
         if (actualizado == null) {
             return ResponseEntity.notFound().build();
         }
