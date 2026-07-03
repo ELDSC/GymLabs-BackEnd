@@ -14,23 +14,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import com.GYMLABS.proyecto.repository.MembresiaRepository;
 import com.GYMLABS.proyecto.repository.PlanRepository;
 import com.GYMLABS.proyecto.model.Membresia;
 import com.GYMLABS.proyecto.model.EstadoMembresia;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class ClienteService {
 
-    @Autowired
-    private ClienteRepository clienteRepository;
+    private final ClienteRepository clienteRepository;
+    private final MembresiaRepository membresiaRepository;
+    private final PlanRepository planRepository;
 
-    @Autowired
-    private MembresiaRepository membresiaRepository;
-
-    @Autowired
-    private PlanRepository planRepository;
-
+    @Transactional
     public Page<Cliente> listarTodos(String searchTerm, String filterStatus, Pageable pageable) {
         LocalDate expiringDate = LocalDate.now().plusDays(10);
         Page<Cliente> page = clienteRepository.buscarClientesConFiltros(searchTerm, filterStatus, expiringDate, pageable);
@@ -57,6 +58,7 @@ public class ClienteService {
                         m.setEstado(EstadoMembresia.VENCIDA);
                         clientesAModificar.add(c);
                         membresiasAModificar.add(m);
+                        log.info("Membresia vencida procesada en batch para el cliente ID: {}", c.getIdCliente());
                     }
                 }
             }
@@ -69,6 +71,7 @@ public class ClienteService {
         return page;
     }
 
+    @Transactional(readOnly = true)
     public Optional<Cliente> buscarPorId(Integer id) {
         Optional<Cliente> opt = clienteRepository.findById(id);
         opt.ifPresent(c -> {
@@ -80,6 +83,7 @@ public class ClienteService {
         return opt;
     }
 
+    @Transactional
     public Cliente guardar(Cliente cliente, Integer planId) {
         if (cliente.getFechaRegistro() == null) {
             cliente.setFechaRegistro(LocalDateTime.now());
@@ -111,10 +115,12 @@ public class ClienteService {
         });
     }
 
+    @Transactional
     public void eliminar(Integer id) {
         clienteRepository.deleteById(id);
     }
 
+    @Transactional
     public Cliente toggleStatus(Integer id, Integer planId) {
         Optional<Cliente> opt = clienteRepository.findById(id);
         if (opt.isPresent()) {
@@ -138,6 +144,7 @@ public class ClienteService {
                 }
             }
             
+            log.info("Estado del cliente ID: {} cambiado a {}", c.getIdCliente(), nuevoEstado);
             return clienteGuardado;
         }
         return null;

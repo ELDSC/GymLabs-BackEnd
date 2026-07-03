@@ -9,8 +9,9 @@ import com.GYMLABS.proyecto.model.Pago;
 import com.GYMLABS.proyecto.repository.ClienteRepository;
 import com.GYMLABS.proyecto.repository.MembresiaRepository;
 import com.GYMLABS.proyecto.repository.PagoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,17 +20,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class DashboardService {
 
-    @Autowired
-    private ClienteRepository clienteRepository;
+    private final ClienteRepository clienteRepository;
+    private final PagoRepository pagoRepository;
+    private final MembresiaRepository membresiaRepository;
 
-    @Autowired
-    private PagoRepository pagoRepository;
-
-    @Autowired
-    private MembresiaRepository membresiaRepository;
-
+    @Transactional(readOnly = true)
     public DashboardDTO getDashboardStats(Integer mes, Integer anio) {
         DashboardDTO dto = new DashboardDTO();
         
