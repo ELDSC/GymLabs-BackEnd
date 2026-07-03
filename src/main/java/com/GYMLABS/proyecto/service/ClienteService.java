@@ -31,8 +31,9 @@ public class ClienteService {
     @Autowired
     private PlanRepository planRepository;
 
-    public Page<Cliente> listarTodos(Pageable pageable) {
-        Page<Cliente> page = clienteRepository.findAll(pageable);
+    public Page<Cliente> listarTodos(String searchTerm, String filterStatus, Pageable pageable) {
+        LocalDate expiringDate = LocalDate.now().plusDays(10);
+        Page<Cliente> page = clienteRepository.buscarClientesConFiltros(searchTerm, filterStatus, expiringDate, pageable);
         
         List<Integer> clienteIds = page.getContent().stream()
                 .map(Cliente::getIdCliente)
