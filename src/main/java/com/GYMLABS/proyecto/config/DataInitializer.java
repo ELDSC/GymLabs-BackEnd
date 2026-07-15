@@ -30,6 +30,9 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private PersonalRepository personalRepository;
 
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
     @Override
     @Transactional
     public void run(String... args) throws Exception {
@@ -48,10 +51,14 @@ public class DataInitializer implements CommandLineRunner {
             sede.setEmpresa(empresa);
             sede = sedeRepository.save(sede);
 
-            // 3. Crear Rol Admin
+            // 3. Crear Roles
             Rol rolAdmin = new Rol();
             rolAdmin.setNombre("ADMIN");
             rolAdmin = rolRepository.save(rolAdmin);
+
+            Rol rolSuperAdmin = new Rol();
+            rolSuperAdmin.setNombre("SUPERADMIN");
+            rolSuperAdmin = rolRepository.save(rolSuperAdmin);
 
             // 4. Crear Personal (Usuario Admin Josue)
             Personal admin = new Personal();
@@ -60,18 +67,70 @@ public class DataInitializer implements CommandLineRunner {
             admin.setDni("74379097");
             admin.setTelefono("947102850");
             admin.setCorreo("sarangojosue6@gmail.com");
-            admin.setPassword("admin123");
+            admin.setPassword(passwordEncoder.encode("admin123"));
             admin.setFechaContratacion(LocalDate.now());
             admin.setRol(rolAdmin);
             admin.setSede(sede);
             
             personalRepository.save(admin);
+
+            // 5. Crear Super Admin del SaaS
+            Personal superadmin = new Personal();
+            superadmin.setNombre("Creador");
+            superadmin.setApellido("SaaS");
+            superadmin.setDni("00000000");
+            superadmin.setCorreo("superadmin@gymlabs.com");
+            superadmin.setPassword(passwordEncoder.encode("super123"));
+            superadmin.setFechaContratacion(LocalDate.now());
+            superadmin.setRol(rolSuperAdmin);
+            superadmin.setSede(sede); // Associated to default sede temporarily
+            
+            personalRepository.save(superadmin);
             
             System.out.println("==========================================================");
             System.out.println("✅ DATOS INICIALES CREADOS CORRECTAMENTE:");
             System.out.println("Empresa: FitLabs");
-            System.out.println("Usuario Admin: Josue Sarango (" + admin.getCorreo() + ")");
+            System.out.println("Usuario Admin: " + admin.getCorreo() + " (admin123)");
+            System.out.println("Súper Admin: " + superadmin.getCorreo() + " (super123)");
             System.out.println("==========================================================");
+        }
+
+        // Siempre asegurarnos de que el superadmin exista y las contraseñas estén encriptadas
+        java.util.List<Personal> todoPersonal = personalRepository.findAll();
+        boolean superadminExists = false;
+        
+        for (Personal p : todoPersonal) {
+            if ("superadmin@gymlabs.com".equals(p.getCorreo())) {
+                superadminExists = true;
+            }
+            if (p.getPassword() != null && !p.getPassword().startsWith("$2a$")) {
+                p.setPassword(passwordEncoder.encode(p.getPassword()));
+                personalRepository.save(p);
+                System.out.println("Contraseña de " + p.getCorreo() + " encriptada exitosamente.");
+            }
+        }
+
+        if (!superadminExists && empresaRepository.count() > 0) {
+            Rol rolSuperAdmin = rolRepository.findAll().stream().filter(r -> "SUPERADMIN".equals(r.getNombre())).findFirst().orElse(null);
+            if (rolSuperAdmin == null) {
+                rolSuperAdmin = new Rol();
+                rolSuperAdmin.setNombre("SUPERADMIN");
+                rolSuperAdmin = rolRepository.save(rolSuperAdmin);
+            }
+            Sede sede = sedeRepository.findAll().get(0);
+            
+            Personal superadmin = new Personal();
+            superadmin.setNombre("Creador");
+            superadmin.setApellido("SaaS");
+            superadmin.setDni("00000000");
+            superadmin.setCorreo("superadmin@gymlabs.com");
+            superadmin.setPassword(passwordEncoder.encode("super123"));
+            superadmin.setFechaContratacion(LocalDate.now());
+            superadmin.setRol(rolSuperAdmin);
+            superadmin.setSede(sede); 
+            
+            personalRepository.save(superadmin);
+            System.out.println("✅ Súper Admin creado retroactivamente: superadmin@gymlabs.com (super123)");
         }
     }
 }

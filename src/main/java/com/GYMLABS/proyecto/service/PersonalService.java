@@ -14,6 +14,9 @@ public class PersonalService {
     @Autowired
     private PersonalRepository personalRepository;
 
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
     public List<Personal> listarTodos() {
         return personalRepository.findAll();
     }
@@ -23,6 +26,9 @@ public class PersonalService {
     }
 
     public Personal guardar(Personal personal) {
+        if (personal.getPassword() != null && !personal.getPassword().startsWith("$2a$")) {
+            personal.setPassword(passwordEncoder.encode(personal.getPassword()));
+        }
         return personalRepository.save(personal);
     }
 
