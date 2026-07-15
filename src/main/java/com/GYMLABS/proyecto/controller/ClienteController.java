@@ -21,12 +21,13 @@ public class ClienteController {
 
     @GetMapping
     public ResponseEntity<Page<Cliente>> listarClientes(
+            @RequestParam(required = false) Integer empresaId,
             @RequestParam(required = false) String searchTerm,
             @RequestParam(defaultValue = "ALL") String filterStatus,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "idCliente"));
-        return ResponseEntity.ok(clienteService.listarTodos(searchTerm, filterStatus, pageable));
+        return ResponseEntity.ok(clienteService.listarTodos(empresaId, searchTerm, filterStatus, pageable));
     }
 
     @GetMapping("/{id}")

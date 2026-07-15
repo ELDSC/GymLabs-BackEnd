@@ -32,9 +32,9 @@ public class ClienteService {
     private final PlanRepository planRepository;
 
     @Transactional
-    public Page<Cliente> listarTodos(String searchTerm, String filterStatus, Pageable pageable) {
+    public Page<Cliente> listarTodos(Integer empresaId, String searchTerm, String filterStatus, Pageable pageable) {
         LocalDate expiringDate = LocalDate.now().plusDays(10);
-        Page<Cliente> page = clienteRepository.buscarClientesConFiltros(searchTerm, filterStatus, expiringDate, pageable);
+        Page<Cliente> page = clienteRepository.buscarClientesConFiltros(empresaId, searchTerm, filterStatus, expiringDate, pageable);
         
         List<Integer> clienteIds = page.getContent().stream()
                 .map(Cliente::getIdCliente)

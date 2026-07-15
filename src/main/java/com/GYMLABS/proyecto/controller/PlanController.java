@@ -17,8 +17,8 @@ public class PlanController {
     private PlanService planService;
 
     @GetMapping
-    public List<Plan> listarTodos() {
-        return planService.listarTodos();
+    public List<Plan> listarTodos(@RequestParam(required = false) Integer empresaId) {
+        return planService.listarTodos(empresaId);
     }
 
     @GetMapping("/{id}")

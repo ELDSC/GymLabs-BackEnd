@@ -18,10 +18,11 @@ public interface ClienteRepository extends JpaRepository<Cliente, Integer> {
     java.util.List<Cliente> findByActivoTrueAndFechaRegistroBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
 
     @Query("SELECT c FROM Cliente c WHERE " +
+           "(:empresaId IS NULL OR c.empresa.idEmpresa = :empresaId) AND " +
            "(:searchTerm IS NULL OR :searchTerm = '' OR LOWER(c.nombre) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR LOWER(c.apellido) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR c.dni LIKE CONCAT('%', :searchTerm, '%')) AND " +
            "(:filterStatus IS NULL OR :filterStatus = 'ALL' OR " +
            "(:filterStatus = 'ACTIVE' AND c.activo = true) OR " +
            "(:filterStatus = 'INACTIVE' AND c.activo = false) OR " +
            "(:filterStatus = 'EXPIRING' AND c.activo = true AND EXISTS (SELECT 1 FROM Membresia m WHERE m.cliente = c AND m.estado = 'ACTIVA' AND m.fechaFin <= :expiringDate)))")
-    Page<Cliente> buscarClientesConFiltros(@Param("searchTerm") String searchTerm, @Param("filterStatus") String filterStatus, @Param("expiringDate") java.time.LocalDate expiringDate, Pageable pageable);
+    Page<Cliente> buscarClientesConFiltros(@Param("empresaId") Integer empresaId, @Param("searchTerm") String searchTerm, @Param("filterStatus") String filterStatus, @Param("expiringDate") java.time.LocalDate expiringDate, Pageable pageable);
 }

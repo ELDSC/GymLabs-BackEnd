@@ -14,7 +14,10 @@ public class PlanService {
     @Autowired
     private PlanRepository planRepository;
 
-    public List<Plan> listarTodos() {
+    public List<Plan> listarTodos(Integer empresaId) {
+        if (empresaId != null) {
+            return planRepository.findByEmpresaIdEmpresa(empresaId);
+        }
         return planRepository.findAll();
     }
 
