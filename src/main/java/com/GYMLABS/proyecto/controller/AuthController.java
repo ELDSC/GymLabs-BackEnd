@@ -54,7 +54,7 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header(org.springframework.http.HttpHeaders.SET_COOKIE, jwtCookie.toString())
                 .body(new AuthResponse(
-                        "", // Ya no enviamos el JWT en el cuerpo por seguridad
+                        jwt, // Restauramos el JWT para que el frontend lo pueda usar como Bearer token
                         userDetails.getPersonal().getNombre(),
                         role,
                         idEmpresa,
