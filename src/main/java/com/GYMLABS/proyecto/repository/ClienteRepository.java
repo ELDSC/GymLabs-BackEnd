@@ -13,9 +13,14 @@ public interface ClienteRepository extends JpaRepository<Cliente, Integer> {
     boolean existsByDni(String dni);
     boolean existsByCorreo(String correo);
 
-    long countByActivoTrue();
-    java.util.List<Cliente> findByActivoTrueAndFechaRegistroAfter(java.time.LocalDateTime date);
-    java.util.List<Cliente> findByActivoTrueAndFechaRegistroBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
+    @Query("SELECT COUNT(c) FROM Cliente c WHERE c.activo = true AND (:empresaId IS NULL OR c.empresa.idEmpresa = :empresaId)")
+    long countActiveClients(@Param("empresaId") Integer empresaId);
+
+    @Query("SELECT c FROM Cliente c WHERE c.activo = true AND (:empresaId IS NULL OR c.empresa.idEmpresa = :empresaId) AND c.fechaRegistro >= :date")
+    java.util.List<Cliente> findActiveClientsAfter(@Param("date") java.time.LocalDateTime date, @Param("empresaId") Integer empresaId);
+
+    @Query("SELECT c FROM Cliente c WHERE c.activo = true AND (:empresaId IS NULL OR c.empresa.idEmpresa = :empresaId) AND c.fechaRegistro BETWEEN :start AND :end")
+    java.util.List<Cliente> findActiveClientsBetween(@Param("start") java.time.LocalDateTime start, @Param("end") java.time.LocalDateTime end, @Param("empresaId") Integer empresaId);
 
     @Query("SELECT c FROM Cliente c WHERE " +
            "(:empresaId IS NULL OR c.empresa.idEmpresa = :empresaId) AND " +

@@ -28,25 +28,25 @@ public class DashboardService {
     private final MembresiaRepository membresiaRepository;
 
     @Transactional(readOnly = true)
-    public DashboardDTO getDashboardStats(Integer mes, Integer anio) {
+    public DashboardDTO getDashboardStats(Integer mes, Integer anio, Integer empresaId) {
         DashboardDTO dto = new DashboardDTO();
         
-        // Total Clientes Activos Global
-        dto.setTotalClientes(clienteRepository.countByActivoTrue());
+        // Total Clientes Activos Global (por empresa)
+        dto.setTotalClientes(clienteRepository.countActiveClients(empresaId));
         
-        // Membresías Activas Global
-        dto.setMembresiasActivas(membresiaRepository.countByEstado(EstadoMembresia.ACTIVA));
+        // Membresías Activas Global (por empresa)
+        dto.setMembresiasActivas(membresiaRepository.countByEstadoAndEmpresa(EstadoMembresia.ACTIVA, empresaId));
 
         if (mes != null && anio != null) {
-            // Lógica para un mes y año específicos (Opción A: dividida por 4 semanas)
-            BigDecimal ingresos = pagoRepository.sumIngresosPorMesYAnio(mes, anio);
+            // Lógica para un mes y año específicos
+            BigDecimal ingresos = pagoRepository.sumIngresosPorMesYAnio(mes, anio, empresaId);
             dto.setIngresosMes(ingresos != null ? ingresos : BigDecimal.ZERO);
 
             LocalDate startDate = LocalDate.of(anio, mes, 1);
             LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
 
             // Gráfico Ingresos (4 semanas)
-            List<Pago> pagos = pagoRepository.findByEstadoPagoAndFechaPagoBetween(EstadoPago.COMPLETADO, startDate.minusDays(1), endDate.plusDays(1));
+            List<Pago> pagos = pagoRepository.findPagosBetween(EstadoPago.COMPLETADO, startDate.minusDays(1), endDate.plusDays(1), empresaId);
             Map<String, Double> ingresosSemanas = new LinkedHashMap<>();
             ingresosSemanas.put("Semana 1", 0.0);
             ingresosSemanas.put("Semana 2", 0.0);
@@ -68,7 +68,7 @@ public class DashboardService {
                     .collect(Collectors.toList()));
 
             // Gráfico Nuevos Clientes (4 semanas)
-            List<Cliente> clientes = clienteRepository.findByActivoTrueAndFechaRegistroBetween(startDate.atStartOfDay(), endDate.atTime(23, 59, 59));
+            List<Cliente> clientes = clienteRepository.findActiveClientsBetween(startDate.atStartOfDay(), endDate.atTime(23, 59, 59), empresaId);
             Map<String, Double> clientesSemanas = new LinkedHashMap<>();
             clientesSemanas.put("Semana 1", 0.0);
             clientesSemanas.put("Semana 2", 0.0);
@@ -91,13 +91,13 @@ public class DashboardService {
 
         } else {
             // Lógica actual (últimos 6 meses)
-            BigDecimal ingresos = pagoRepository.sumIngresosMesActual();
+            BigDecimal ingresos = pagoRepository.sumIngresosMesActual(empresaId);
             dto.setIngresosMes(ingresos != null ? ingresos : BigDecimal.ZERO);
 
             LocalDate sixMonthsAgo = LocalDate.now().minusMonths(5).withDayOfMonth(1);
             
             // Grafico Ingresos
-            List<Pago> pagos = pagoRepository.findByEstadoPagoAndFechaPagoAfter(EstadoPago.COMPLETADO, sixMonthsAgo.minusDays(1));
+            List<Pago> pagos = pagoRepository.findPagosAfter(EstadoPago.COMPLETADO, sixMonthsAgo.minusDays(1), empresaId);
             Map<String, Double> ingresosPorMes = new LinkedHashMap<>();
             for(int i = 5; i >= 0; i--) {
                 LocalDate d = LocalDate.now().minusMonths(i);
@@ -115,7 +115,7 @@ public class DashboardService {
                     .collect(Collectors.toList()));
 
             // Grafico Nuevos Clientes
-            List<Cliente> clientes = clienteRepository.findByActivoTrueAndFechaRegistroAfter(sixMonthsAgo.atStartOfDay());
+            List<Cliente> clientes = clienteRepository.findActiveClientsAfter(sixMonthsAgo.atStartOfDay(), empresaId);
             Map<String, Double> clientesPorMes = new LinkedHashMap<>();
             for(int i = 5; i >= 0; i--) {
                 LocalDate d = LocalDate.now().minusMonths(i);

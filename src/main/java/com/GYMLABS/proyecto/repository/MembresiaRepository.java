@@ -9,7 +9,8 @@ import java.util.List;
 
 @Repository
 public interface MembresiaRepository extends JpaRepository<Membresia, Integer> {
-    long countByEstado(com.GYMLABS.proyecto.model.EstadoMembresia estado);
+    @Query("SELECT COUNT(m) FROM Membresia m WHERE m.estado = :estado AND (:empresaId IS NULL OR m.cliente.empresa.idEmpresa = :empresaId)")
+    long countByEstadoAndEmpresa(@Param("estado") com.GYMLABS.proyecto.model.EstadoMembresia estado, @Param("empresaId") Integer empresaId);
     
     java.util.List<Membresia> findByCliente_IdClienteOrderByFechaFinDesc(Integer idCliente);
 
