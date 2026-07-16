@@ -13,4 +13,6 @@ public class AuthResponse {
     private String rol;
     private Integer idEmpresa;
     private String empresaNombre;
+    private String apellido;
+    private String correo;
 }

@@ -58,7 +58,9 @@ public class AuthController {
                         userDetails.getPersonal().getNombre(),
                         role,
                         idEmpresa,
-                        empresaNombre
+                        empresaNombre,
+                        userDetails.getPersonal().getApellido(),
+                        userDetails.getPersonal().getCorreo()
                 ));
     }
 }
