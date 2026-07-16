@@ -17,8 +17,8 @@ public class PersonalController {
     private PersonalService personalService;
 
     @GetMapping
-    public List<Personal> listarTodos() {
-        return personalService.listarTodos();
+    public List<Personal> listarTodos(@RequestParam(defaultValue = "1") Integer empresaId) {
+        return personalService.listarPorEmpresa(empresaId);
     }
 
     @GetMapping("/{id}")
@@ -29,25 +29,39 @@ public class PersonalController {
     }
 
     @PostMapping
-    public ResponseEntity<Personal> guardar(@RequestBody Personal personal) {
-        return new ResponseEntity<>(personalService.guardar(personal), HttpStatus.CREATED);
+    public ResponseEntity<?> guardar(@RequestParam(defaultValue = "1") Integer empresaId, @RequestBody com.GYMLABS.proyecto.dto.PersonalDto dto) {
+        try {
+            Personal guardado = personalService.guardarDesdeDto(dto, empresaId, false);
+            return new ResponseEntity<>(guardado, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Personal> actualizar(@PathVariable Integer id, @RequestBody Personal personal) {
-        if (!personalService.buscarPorId(id).isPresent()) {
+    public ResponseEntity<?> actualizar(@PathVariable Integer id, @RequestParam(defaultValue = "1") Integer empresaId, @RequestBody com.GYMLABS.proyecto.dto.PersonalDto dto) {
+        if (personalService.buscarPorId(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        personal.setIdPersonal(id);
-        return ResponseEntity.ok(personalService.guardar(personal));
+        try {
+            dto.setIdPersonal(id);
+            Personal guardado = personalService.guardarDesdeDto(dto, empresaId, true);
+            return ResponseEntity.ok(guardado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
-        if (!personalService.buscarPorId(id).isPresent()) {
+        if (personalService.buscarPorId(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        personalService.eliminar(id);
+        personalService.softDelete(id);
         return ResponseEntity.noContent().build();
     }
 }
