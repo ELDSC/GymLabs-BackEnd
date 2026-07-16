@@ -132,5 +132,17 @@ public class DataInitializer implements CommandLineRunner {
             personalRepository.save(superadmin);
             System.out.println("✅ Súper Admin creado retroactivamente: superadmin@gymlabs.com (super123)");
         }
+        
+        // Asegurar que todos los roles básicos existan (retroactivo)
+        java.util.List<String> rolesBasicos = java.util.Arrays.asList("ADMIN", "SUPERADMIN", "RECEPCIONISTA");
+        for (String nombreRol : rolesBasicos) {
+            boolean existe = rolRepository.findAll().stream().anyMatch(r -> r.getNombre().equalsIgnoreCase(nombreRol));
+            if (!existe) {
+                Rol nuevoRol = new Rol();
+                nuevoRol.setNombre(nombreRol);
+                rolRepository.save(nuevoRol);
+                System.out.println("✅ Rol creado retroactivamente: " + nombreRol);
+            }
+        }
     }
 }

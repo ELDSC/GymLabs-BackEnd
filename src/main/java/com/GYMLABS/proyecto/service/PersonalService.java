@@ -70,7 +70,20 @@ public class PersonalService {
         
         // Asignar Rol
         String rolBuscado = dto.getRol() != null ? dto.getRol() : "RECEPCIONISTA";
-        var rol = rolRepository.findAll().stream().filter(r -> r.getNombre().equals(rolBuscado)).findFirst();
+        if (rolBuscado.startsWith("ROLE_")) {
+            rolBuscado = rolBuscado.substring(5);
+        }
+        final String rolFinal = rolBuscado;
+        
+        var rol = rolRepository.findAll().stream()
+                .filter(r -> r.getNombre().equalsIgnoreCase(rolFinal))
+                .findFirst();
+                
+        if (rol.isEmpty()) {
+            List<String> rolesDisponibles = rolRepository.findAll().stream().map(r -> r.getNombre()).toList();
+            throw new RuntimeException("Error crítico: Rol no encontrado en la BD: '" + rolFinal + "'. Roles disponibles: " + rolesDisponibles);
+        }
+        
         rol.ifPresent(personal::setRol);
 
         if (dto.getContrasena() != null && !dto.getContrasena().trim().isEmpty()) {
