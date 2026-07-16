@@ -45,10 +45,10 @@ public class AuthController {
 
         org.springframework.http.ResponseCookie jwtCookie = org.springframework.http.ResponseCookie.from("jwt", jwt)
                 .httpOnly(true)
-                .secure(false) // Set to true if running on HTTPS
+                .secure(true) // Debe ser true si SameSite=None
                 .path("/")
                 .maxAge(24 * 60 * 60)
-                .sameSite("Strict")
+                .sameSite("None") // Permite cross-domain cookies (Vercel <-> Render)
                 .build();
 
         return ResponseEntity.ok()

@@ -31,14 +31,13 @@ echo Host: %DB_HOST%
 echo Destino: %BACKUP_FILE%
 echo ========================================================
 
-:: Ejecutar mysqldump
-:: NOTA: Es necesario tener 'mysqldump' configurado en las Variables de Entorno (PATH) de Windows
-mysqldump -h %DB_HOST% -P %DB_PORT% -u %DB_USER% -p%DB_PASS% %DB_NAME% > "%BACKUP_FILE%"
+:: Ejecutar mysqldump a traves de Docker para evitar instalar MySQL localmente
+docker run --rm mysql:8.0 mysqldump -h %DB_HOST% -P %DB_PORT% -u %DB_USER% -p%DB_PASS% %DB_NAME% > "%BACKUP_FILE%"
 
 if %errorlevel% equ 0 (
     echo [EXITO] Respaldo completado satisfactoriamente.
 ) else (
-    echo [ERROR] Hubo un problema al generar el respaldo. Verifique que 'mysqldump' este instalado y en el PATH.
+    echo [ERROR] Hubo un problema al generar el respaldo. Asegurate de que Docker Desktop este abierto.
 )
 
 endlocal
