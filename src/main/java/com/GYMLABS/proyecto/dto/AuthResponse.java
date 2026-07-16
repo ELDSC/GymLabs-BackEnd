@@ -15,4 +15,7 @@ public class AuthResponse {
     private String empresaNombre;
     private String apellido;
     private String correo;
+    private Integer idPersonal;
+    private String dni;
+    private String telefono;
 }

@@ -60,7 +60,10 @@ public class AuthController {
                         idEmpresa,
                         empresaNombre,
                         userDetails.getPersonal().getApellido(),
-                        userDetails.getPersonal().getCorreo()
+                        userDetails.getPersonal().getCorreo(),
+                        userDetails.getPersonal().getIdPersonal(),
+                        userDetails.getPersonal().getDni(),
+                        userDetails.getPersonal().getTelefono()
                 ));
     }
 }
