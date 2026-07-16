@@ -43,12 +43,22 @@ public class AuthController {
             empresaNombre = userDetails.getPersonal().getSede().getEmpresa().getNombre();
         }
 
-        return ResponseEntity.ok(new AuthResponse(
-                jwt,
-                userDetails.getPersonal().getNombre(),
-                role,
-                idEmpresa,
-                empresaNombre
-        ));
+        org.springframework.http.ResponseCookie jwtCookie = org.springframework.http.ResponseCookie.from("jwt", jwt)
+                .httpOnly(true)
+                .secure(false) // Set to true if running on HTTPS
+                .path("/")
+                .maxAge(24 * 60 * 60)
+                .sameSite("Strict")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                .body(new AuthResponse(
+                        "", // Ya no enviamos el JWT en el cuerpo por seguridad
+                        userDetails.getPersonal().getNombre(),
+                        role,
+                        idEmpresa,
+                        empresaNombre
+                ));
     }
 }
