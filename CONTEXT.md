@@ -37,8 +37,10 @@
 - La Membresía de un cliente dicta si tiene permitido el ingreso.
 - Se actualiza automáticamente a `VENCIDA` cuando la `fechaFin` expira.
 
-## 4. 🔒 Modelo de Permisos y Autorización
+## 4. 🔒 Modelo de Permisos y Autorización (RBAC)
 - El acceso se controla mediante Spring Security (`SecurityConfig.java`). Las rutas `/api/auth/login` son públicas, mientras que las demás requieren autenticación.
-- En el **Frontend** (`AuthContext.tsx`), se realiza una redirección estricta:
-  - Si el usuario es `ROLE_SUPERADMIN`, es redirigido a `/superadmin`.
-  - Si el usuario es `ROLE_ADMIN` o recepcionista, es redirigido a `/dashboard`. No pueden acceder a las rutas del superadministrador.
+- El objeto de autenticación (`AuthUser`) en el Frontend se nutre de la respuesta del login e incluye: `token`, `idPersonal`, `rol`, `nombre`, `apellido`, `correo` y `dni`.
+- En el **Frontend** (`AuthContext.tsx` y `layout.tsx`), se realiza una redirección estricta y protección de rutas:
+  - Si el usuario es `ROLE_SUPERADMIN`, es redirigido a `/superadmin`. No tiene acceso al dashboard normal.
+  - Si el usuario es `ROLE_ADMIN`, tiene acceso total al `/dashboard` y todas las configuraciones en `/ajustes`.
+  - Si el usuario es `ROLE_RECEPCIONISTA`, tiene acceso a gestionar clientes e Inicio. Tiene **bloqueado** el acceso a la vista de métricas (`/dashboard`), no puede editar Planes (solo lectura) y en `/ajustes` solo puede editar su perfil personal (con el campo correo bloqueado). No puede ver configuraciones del gimnasio ni del resto del personal.

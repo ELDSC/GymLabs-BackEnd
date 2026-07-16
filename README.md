@@ -7,6 +7,9 @@ Este repositorio contiene el **Backend (API REST)** del sistema de gestión para
 *   🚀 **Arquitectura RESTful:** Endpoints estructurados y limpios para la comunicación eficiente con el Frontend.
 *   📊 **Dashboard de Métricas:** Algoritmos de agregación nativos en base de datos para calcular ingresos y adquisición de clientes sin sobrecargar la red.
 *   👥 **Gestión de Entidades (CRUD):** Control completo sobre Clientes, Planes, Membresías, Pagos y Personal.
+*   🔐 **Seguridad Avanzada:** Integración con Spring Security y tokens JWT distribuidos de manera segura (Cookies HttpOnly y header Bearer).
+*   🛡️ **Sistema RBAC:** Autorización basada en roles restrictiva (ej. `ROLE_ADMIN`, `ROLE_RECEPCIONISTA`) para proteger endpoints sensibles.
+*   📈 **Monitoreo en Vivo:** Métricas expuestas a través de Spring Boot Actuator, listas para ser scrapeadas por Prometheus y Grafana.
 *   ☁️ **Cloud-Ready:** Configurado para despliegue sin fricción gracias a la inclusión de `Dockerfile`.
 *   🗄️ **Generación de Esquema Automática:** Uso de `ddl-auto` con JPA/Hibernate para migraciones ágiles y automáticas de la base de datos (Data Driven Development).
 
