@@ -21,6 +21,10 @@ import com.GYMLABS.proyecto.repository.MembresiaRepository;
 import com.GYMLABS.proyecto.repository.PlanRepository;
 import com.GYMLABS.proyecto.model.Membresia;
 import com.GYMLABS.proyecto.model.EstadoMembresia;
+import com.GYMLABS.proyecto.model.Pago;
+import com.GYMLABS.proyecto.model.EstadoPago;
+import com.GYMLABS.proyecto.model.MetodoPago;
+import com.GYMLABS.proyecto.repository.PagoRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +34,7 @@ public class ClienteService {
     private final ClienteRepository clienteRepository;
     private final MembresiaRepository membresiaRepository;
     private final PlanRepository planRepository;
+    private final PagoRepository pagoRepository;
 
     @Transactional
     public Page<Cliente> listarTodos(Integer empresaId, String searchTerm, String filterStatus, Pageable pageable) {
@@ -108,7 +113,16 @@ public class ClienteService {
             nueva.setFechaInicio(LocalDate.now());
             nueva.setPlan(p);
             nueva.setFechaFin(LocalDate.now().plusMonths(p.getDuracionMeses()));
-            membresiaRepository.save(nueva);
+            Membresia membresiaGuardada = membresiaRepository.save(nueva);
+            
+            // Generar el pago automáticamente en estado PENDIENTE
+            Pago nuevoPago = new Pago();
+            nuevoPago.setFechaPago(LocalDate.now());
+            nuevoPago.setMonto(p.getPrecio() != null ? p.getPrecio() : java.math.BigDecimal.ZERO);
+            nuevoPago.setMetodoPago(MetodoPago.EFECTIVO);
+            nuevoPago.setEstadoPago(EstadoPago.PENDIENTE);
+            nuevoPago.setMembresia(membresiaGuardada);
+            pagoRepository.save(nuevoPago);
             
             cliente.setActivo(true);
             cliente.setFechaVencimiento(nueva.getFechaFin());
