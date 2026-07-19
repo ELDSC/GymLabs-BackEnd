@@ -21,4 +21,6 @@ public interface PagoRepository extends JpaRepository<Pago, Integer> {
 
     @org.springframework.data.jpa.repository.Query("SELECT p FROM Pago p WHERE p.membresia.cliente.empresa.idEmpresa = :empresaId ORDER BY p.idPago DESC")
     java.util.List<Pago> findByEmpresaIdOrderByFechaPagoDesc(@org.springframework.data.repository.query.Param("empresaId") Integer empresaId);
+
+    void deleteByMembresia_IdMembresia(Integer idMembresia);
 }

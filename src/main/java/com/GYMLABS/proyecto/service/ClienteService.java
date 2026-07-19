@@ -131,6 +131,15 @@ public class ClienteService {
 
     @Transactional
     public void eliminar(Integer id) {
+        // Encontrar membresias del cliente
+        List<Membresia> membresias = membresiaRepository.findByCliente_IdClienteOrderByFechaFinDesc(id);
+        
+        // Eliminar pagos asociados a cada membresia y luego la membresia
+        for (Membresia m : membresias) {
+            pagoRepository.deleteByMembresia_IdMembresia(m.getIdMembresia());
+        }
+        membresiaRepository.deleteAll(membresias);
+        
         clienteRepository.deleteById(id);
     }
 
