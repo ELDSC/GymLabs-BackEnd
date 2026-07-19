@@ -17,8 +17,8 @@ public class PagoController {
     private PagoService pagoService;
 
     @GetMapping
-    public List<Pago> listarTodos() {
-        return pagoService.listarTodos();
+    public List<Pago> listarTodos(@RequestParam(required = false) Integer empresaId) {
+        return pagoService.listarTodos(empresaId);
     }
 
     @GetMapping("/{id}")

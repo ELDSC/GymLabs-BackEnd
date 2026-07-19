@@ -14,7 +14,10 @@ public class PagoService {
     @Autowired
     private PagoRepository pagoRepository;
 
-    public List<Pago> listarTodos() {
+    public List<Pago> listarTodos(Integer empresaId) {
+        if (empresaId != null) {
+            return pagoRepository.findByEmpresaIdOrderByFechaPagoDesc(empresaId);
+        }
         return pagoRepository.findAll();
     }
 

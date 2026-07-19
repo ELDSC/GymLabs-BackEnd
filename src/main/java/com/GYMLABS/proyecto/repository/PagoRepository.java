@@ -18,4 +18,7 @@ public interface PagoRepository extends JpaRepository<Pago, Integer> {
 
     @org.springframework.data.jpa.repository.Query("SELECT p FROM Pago p WHERE p.estadoPago = :estado AND p.fechaPago BETWEEN :start AND :end AND (:empresaId IS NULL OR p.membresia.cliente.empresa.idEmpresa = :empresaId)")
     java.util.List<Pago> findPagosBetween(@org.springframework.data.repository.query.Param("estado") com.GYMLABS.proyecto.model.EstadoPago estado, @org.springframework.data.repository.query.Param("start") java.time.LocalDate start, @org.springframework.data.repository.query.Param("end") java.time.LocalDate end, @org.springframework.data.repository.query.Param("empresaId") Integer empresaId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT p FROM Pago p WHERE p.membresia.cliente.empresa.idEmpresa = :empresaId ORDER BY p.fechaPago DESC")
+    java.util.List<Pago> findByEmpresaIdOrderByFechaPagoDesc(@org.springframework.data.repository.query.Param("empresaId") Integer empresaId);
 }
